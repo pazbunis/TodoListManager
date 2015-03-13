@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TodoListManager</string>
+
+    <string name="add_item">Add Item</string>
+    <string name="delete_item">Delete Item</string>
+    <string name="action_settings">Settings</string>
+
+
+</resources>
