@@ -9,13 +9,6 @@
     android:focusableInTouchMode="true"
     tools:context=".TodoListManagerActivity">
 
-    <EditText
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/edtNewItem"
-
-        />
-
     <ListView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
