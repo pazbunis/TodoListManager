@@ -3,14 +3,13 @@ package il.ac.huji.todolistmanager;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class AddNewTodoItemActivity extends ActionBarActivity {
@@ -30,11 +29,13 @@ public class AddNewTodoItemActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 Intent result = new Intent();
-                result.putExtra("isOK",true);
-                result.putExtra("itemText",edtNewItem.getText().toString());
-                int[] dateVals = {datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth()};
-                result.putExtra("dateVals", dateVals);
-                        setResult(RESULT_OK, result);
+                result.putExtra("title",edtNewItem.getText().toString());
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.YEAR, datePicker.getYear());
+                cal.set(Calendar.MONTH, datePicker.getMonth());
+                cal.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
+                result.putExtra("dueDate", cal.getTime());
+                setResult(RESULT_OK, result);
                 finish();
             }
         });
@@ -43,7 +44,8 @@ public class AddNewTodoItemActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent result = new Intent();
-                result.putExtra("isOK", false);
+                result.putExtra("title","");
+                result.putExtra("dueDate",(Date)null);
                 setResult(RESULT_OK, result);
                 finish();
             }

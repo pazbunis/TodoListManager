@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 
@@ -49,8 +50,8 @@ public class TodoListManagerActivity extends ActionBarActivity {
 
     private String getPhoneNum(String title){
         String num = "";
-        if (title.toLowerCase().contains("call")){
-            num = title.substring(title.toLowerCase().indexOf("call") + 5);
+        if (title.toLowerCase().startsWith("call ")){
+            num = title.substring(title.toLowerCase().indexOf("call ") + 5);
         }
         return num;
     }
@@ -66,9 +67,9 @@ public class TodoListManagerActivity extends ActionBarActivity {
             todoListAdapter.notifyDataSetChanged();
         }
         else{
-            Intent call = new Intent(Intent.ACTION_CALL,
+            Intent dial = new Intent(Intent.ACTION_DIAL,
                     Uri.parse("tel:" + getPhoneNum(listItems.get(info.position).getText())));
-            startActivity(call);
+            startActivity(dial);
         }
         return true;
     }
@@ -99,11 +100,11 @@ public class TodoListManagerActivity extends ActionBarActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK){
-            boolean isOK = data.getBooleanExtra("isOK", false);
-            if (isOK){
-                String itemText = data.getStringExtra("itemText");
-                int[] selectedDateVals = data.getIntArrayExtra("dateVals");
-                GregorianCalendar selectedDate = new GregorianCalendar(selectedDateVals[0], selectedDateVals[1], selectedDateVals[2]);
+            Date dueDate = (Date)data.getSerializableExtra("dueDate");
+            if (dueDate != null){
+                String itemText = data.getStringExtra("title");
+                GregorianCalendar selectedDate = new GregorianCalendar();
+                selectedDate.setTime(dueDate);
                 listItems.add(new TodoItem(selectedDate,itemText));
                 todoListAdapter.notifyDataSetChanged();
                 Log.w("myApp",selectedDate.getTime().toString());
