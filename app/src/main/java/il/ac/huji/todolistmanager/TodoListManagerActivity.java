@@ -1,33 +1,42 @@
 package il.ac.huji.todolistmanager;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 
 public class TodoListManagerActivity extends ActionBarActivity {
-    public ArrayList<TodoItem> listItems = new ArrayList<>();
-    public myEx3CustomAdapter<TodoItem> todoListAdapter;
+
+    public myCursorAdapter todoCursorAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_todo_list_manager);
         ListView lstTodoItems = (ListView)findViewById(R.id.lstTodoItems);
         registerForContextMenu(lstTodoItems);
-        todoListAdapter = new myEx3CustomAdapter<>(
-                this, R.layout.todo_list_item, listItems);
-        lstTodoItems.setAdapter(todoListAdapter);
+        TodoListDBHelper helper = new TodoListDBHelper(this);
+        SQLiteDatabase db = helper.getWritableDatabase();
+        Cursor cursor = db.query(TodoListDBHelper.TODOLIST_TABLE_NAME,null,null,null,null,null,null);
+        todoCursorAdapter = new myCursorAdapter(this, cursor, 0);
+        lstTodoItems.setAdapter(todoCursorAdapter);
+
     }
 
     @Override
@@ -35,7 +44,9 @@ public class TodoListManagerActivity extends ActionBarActivity {
         if (v.getId()==R.id.lstTodoItems) {
             getMenuInflater().inflate(R.menu.menu_item_select,menu);
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            String itemTitle = listItems.get(info.position).getText();
+
+            TextView title = (TextView) info.targetView.findViewById(R.id.txtTodoTitle);
+            String itemTitle = title.getText().toString();
             menu.setHeaderTitle(itemTitle);
             String phone = getPhoneNum(itemTitle);
             if (phone.equals("")){
@@ -60,15 +71,24 @@ public class TodoListManagerActivity extends ActionBarActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+
+        TextView title = (TextView) info.targetView.findViewById(R.id.txtTodoTitle);
+        String itemTitle = title.getText().toString();
+
         int menuItemIndex = item.getItemId();
         if (menuItemIndex == R.id.menuItemDelete)
         {
-            listItems.remove(info.position);
-            todoListAdapter.notifyDataSetChanged();
+            int id = info.targetView.getId();
+            TodoListDBHelper helper = new TodoListDBHelper(this);
+            SQLiteDatabase db = helper.getWritableDatabase();
+            db.delete(TodoListDBHelper.TODOLIST_TABLE_NAME, "_id = " + id, null);
+            Cursor cursor = db.query(TodoListDBHelper.TODOLIST_TABLE_NAME,null,null,null,null,null,null);
+            todoCursorAdapter.changeCursor(cursor);
+            todoCursorAdapter.notifyDataSetChanged();
         }
         else{
             Intent dial = new Intent(Intent.ACTION_DIAL,
-                    Uri.parse("tel:" + getPhoneNum(listItems.get(info.position).getText())));
+                    Uri.parse("tel:" + getPhoneNum(itemTitle)));
             startActivity(dial);
         }
         return true;
@@ -105,9 +125,16 @@ public class TodoListManagerActivity extends ActionBarActivity {
                 String itemText = data.getStringExtra("title");
                 GregorianCalendar selectedDate = new GregorianCalendar();
                 selectedDate.setTime(dueDate);
-                listItems.add(new TodoItem(selectedDate,itemText));
-                todoListAdapter.notifyDataSetChanged();
-                Log.w("myApp",selectedDate.getTime().toString());
+                //listItems.add(new TodoItem(selectedDate,itemText));
+                TodoListDBHelper helper = new TodoListDBHelper(this);
+                SQLiteDatabase db = helper.getWritableDatabase();
+                ContentValues mytask = new ContentValues();
+                mytask.put("title",itemText);
+                mytask.put("due", dueDate.getTime());
+                db.insert(TodoListDBHelper.TODOLIST_TABLE_NAME,null,mytask);
+                Cursor cursor = db.query(TodoListDBHelper.TODOLIST_TABLE_NAME,null,null,null,null,null,null);
+                todoCursorAdapter.changeCursor(cursor);
+                todoCursorAdapter.notifyDataSetChanged();
             }
         }
     }
